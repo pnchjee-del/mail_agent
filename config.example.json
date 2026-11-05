@@ -1,0 +1,22 @@
+{
+  "poll_interval_seconds": 300,
+  "max_scan": 10,
+  "auto_delete": false,
+  "grace_period_minutes": 60,
+  "avatar_character": "dog",
+  "ai_provider": "omniroute",
+  "use_omniroute": true,
+  "omniroute_base_url": "http://localhost:20128/v1",
+  "omniroute_api_key": "omniroute",
+  "omniroute_model": "auto",
+  "designated_senders": [
+    "client@example.com",
+    "boss@company.com"
+  ],
+  "delete_senders": [],
+  "sender_folder_prefix": "",
+  "sender_folder_mappings": {
+    "indusindbank": "indusind",
+    "indusind": "indusind"
+  }
+}

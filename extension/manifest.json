@@ -1,0 +1,58 @@
+{
+  "manifest_version": 3,
+  "name": "Gmail AI 3D Avatar Assistant",
+  "version": "1.2.0",
+  "description": "Interactive 3D Avatar Assistant that triages your Gmail inbox with facial expressions, message box remarks, and automated email tasks directly in your browser without any external server.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://oauth2.googleapis.com/*",
+    "https://gmail.googleapis.com/*",
+    "https://api.openai.com/*",
+    "http://localhost:*/*",
+    "http://127.0.0.1:*/*",
+    "*://mail.google.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://mail.google.com/*"
+      ],
+      "js": [
+        "gmail_engine.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "all_frames": false,
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "avatar.html",
+        "avatar.js",
+        "gmail_engine.js",
+        "auth_config.json",
+        "libs/*",
+        "icons/*"
+      ],
+      "matches": [
+        "*://mail.google.com/*"
+      ]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

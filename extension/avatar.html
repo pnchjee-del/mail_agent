@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            user-select: none;
+        }
+
+        /* Top Bar */
+        #top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 10;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11.5px;
+            color: #93c5fd;
+            font-weight: 500;
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        .top-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(147, 197, 253, 0.25);
+            color: #93c5fd;
+            padding: 4px 9px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+
+        .top-btn:hover {
+            background: #1e293b;
+            color: #ffffff;
+            border-color: #38bdf8;
+        }
+
+        /* 3D Viewport */
+        #viewport-wrapper {
+            position: relative;
+            flex: 1;
+            min-height: 250px;
+            background: radial-gradient(circle at 50% 25%, #1e1b4b 0%, #0f172a 100%);
+            overflow: hidden;
+        }
+
+        #canvas-mount {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        #canvas-mount:active {
+            cursor: grabbing;
+        }
+
+        /* Speech Text Balloon with Tail Pointing to Mouth */
+        #speech-balloon {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 2px solid rgba(56, 189, 248, 0.55);
+            border-radius: 18px;
+            padding: 12px 16px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            z-index: 10;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: top center;
+        }
+
+        /* Triangular Speech Balloon Tail pointing UP to the avatar's lips */
+        #speech-balloon::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 11px solid transparent;
+            border-right: 11px solid transparent;
+            border-bottom: 12px solid rgba(56, 189, 248, 0.65);
+        }
+
+        #speech-balloon::after {
+            content: '';
+            position: absolute;
+            top: -9px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 9px solid transparent;
+            border-right: 9px solid transparent;
+            border-bottom: 10px solid #0f172a;
+        }
+
+        /* Active Speaking Glow & Bounce Effect */
+        #speech-balloon.speaking {
+            border-color: #38bdf8;
+            box-shadow: 0 0 26px rgba(56, 189, 248, 0.55);
+            animation: balloon-pop 0.35s ease;
+        }
+
+        @keyframes balloon-pop {
+            0% { transform: scale(0.94); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1.0); }
+        }
+
+        .balloon-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .balloon-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sound-wave-bars {
+            display: inline-flex;
+            align-items: center;
+            gap: 2.5px;
+            height: 12px;
+        }
+
+        .sound-wave-bars span {
+            width: 2.5px;
+            height: 100%;
+            background: #38bdf8;
+            border-radius: 2px;
+            animation: wave-bar 0.7s infinite ease-in-out alternate;
+        }
+
+        .sound-wave-bars span:nth-child(1) { animation-delay: 0.0s; }
+        .sound-wave-bars span:nth-child(2) { animation-delay: 0.25s; }
+        .sound-wave-bars span:nth-child(3) { animation-delay: 0.15s; }
+        .sound-wave-bars span:nth-child(4) { animation-delay: 0.35s; }
+
+        @keyframes wave-bar {
+            0% { height: 3px; }
+            100% { height: 12px; }
+        }
+
+        .speaking-badge {
+            display: none;
+            font-size: 10px;
+            font-weight: 600;
+            color: #c084fc;
+            background: rgba(192, 132, 252, 0.18);
+            padding: 2px 7px;
+            border-radius: 8px;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #balloon-text {
+            color: #f8fafc;
+            font-size: 13.5px;
+            line-height: 1.45;
+            font-weight: 450;
+            max-height: 70px;
+            overflow-y: auto;
+        }
+
+        /* Controls Section */
+        #control-section {
+            background: #0f172a;
+            padding: 10px 12px 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .chips-row {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .chip-btn {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            padding: 5px 9px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .chip-btn:hover {
+            background: #1e293b;
+            color: #38bdf8;
+            border-color: #38bdf8;
+        }
+
+        #input-form {
+            display: flex;
+            gap: 6px;
+        }
+
+        #user-input {
+            flex: 1;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: #ffffff;
+            padding: 8px 12px;
+            font-size: 12.5px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        #user-input:focus {
+            border-color: #38bdf8;
+        }
+
+        #send-btn {
+            background: #0284c7;
+            border: none;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        #send-btn:hover {
+            background: #0369a1;
+        }
+
+        #send-btn:disabled {
+            background: #334155;
+            cursor: not-allowed;
+        }
+
+        /* Settings Modal Overlay */
+        #settings-modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.96);
+            z-index: 50;
+            padding: 16px;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+
+        #settings-modal.active {
+            display: flex;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .settings-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #38bdf8;
+        }
+
+        .setting-label {
+            font-size: 11.5px;
+            color: #94a3b8;
+            font-weight: 500;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .setting-input {
+            width: 100%;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #ffffff;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .setting-textarea {
+            width: 100%;
+            height: 60px;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #ffffff;
+            font-size: 11px;
+            outline: none;
+            resize: vertical;
+        }
+
+        .save-btn {
+            background: #0284c7;
+            color: #ffffff;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        /* Results Drawer */
+        #results-drawer {
+            display: none;
+            position: absolute;
+            top: 40px; left: 10px; right: 10px; bottom: 65px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 12px;
+            padding: 12px;
+            z-index: 30;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+        }
+
+        #results-drawer.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <div id="top-bar">
+        <div class="status-pill">
+            <div class="pulse-dot"></div>
+            <span id="agent-status">Connecting to Gmail...</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+            <button id="char-btn" class="top-btn" title="Switch Character (Dog, Bunny, Bear)">🐶 Dog</button>
+            <button id="voice-btn" class="top-btn" title="Toggle Voice">🔊 Voice: OFF</button>
+            <button id="settings-btn" class="top-btn" title="Settings">⚙️ Rules</button>
+        </div>
+    </div>
+
+    <div id="viewport-wrapper">
+        <div id="canvas-mount"></div>
+
+        <!-- Animated Speech Text Balloon with Pointer Tail -->
+        <div id="speech-balloon">
+            <div class="balloon-header">
+                <span class="balloon-title">
+                    <span id="balloon-title">🐶 Cute Dog Assistant</span>
+                </span>
+                <span id="speaking-badge" class="speaking-badge">
+                    <span class="sound-wave-bars active">
+                        <span></span><span></span><span></span><span></span>
+                    </span>
+                    <span>Speaking...</span>
+                </span>
+            </div>
+            <div id="balloon-text">Initializing your assistant avatar...</div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal">
+            <div class="settings-header">
+                <span class="settings-title">⚙️ Avatar Agent Settings</span>
+                <button id="close-settings-btn" class="top-btn">✕</button>
+            </div>
+            <div>
+                <label class="setting-label">Cute Avatar Companion</label>
+                <select id="cfg-character" class="setting-input" style="cursor: pointer;">
+                    <option value="dog">🐶 Cute Puppy Dog</option>
+                    <option value="bunny">🐰 Fluffy Bunny</option>
+                    <option value="bear">🐻 Teddy Bear</option>
+                </select>
+            </div>
+            <div>
+                <label class="setting-label">AI Engine / Provider</label>
+                <select id="cfg-ai-provider" class="setting-input" style="cursor: pointer;">
+                    <option value="omniroute">🌐 OmniRoute Gateway (Local / Multi-Model)</option>
+                    <option value="openai">🤖 Direct OpenAI API</option>
+                </select>
+            </div>
+            <!-- OmniRoute Configuration -->
+            <div id="omniroute-config-group" style="background: rgba(14, 165, 233, 0.08); padding: 10px; border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.25); display: flex; flex-direction: column; gap: 8px;">
+                <div style="font-size: 11.5px; font-weight: 600; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+                    <span>🌐 OmniRoute Gateway Settings</span>
+                </div>
+                <div>
+                    <label class="setting-label">OmniRoute Base URL</label>
+                    <input type="text" id="cfg-omniroute-url" class="setting-input" placeholder="http://localhost:20128/v1" value="http://localhost:20128/v1" />
+                </div>
+                <div>
+                    <label class="setting-label">OmniRoute Model</label>
+                    <input type="text" id="cfg-omniroute-model" class="setting-input" placeholder="auto (or auto/coding, gpt-4o-mini)" value="auto" />
+                </div>
+                <div>
+                    <label class="setting-label">OmniRoute API Key (Optional)</label>
+                    <input type="password" id="cfg-omniroute-key" class="setting-input" placeholder="omniroute or sk-..." />
+                </div>
+                <button type="button" id="test-omniroute-btn" class="top-btn" style="width: 100%; padding: 6px; font-weight: 600; background: rgba(56, 189, 248, 0.2); border-color: #38bdf8;">🔌 Test OmniRoute Connection</button>
+                <div id="omniroute-test-status" style="font-size: 11px; line-height: 1.35; color: #94a3b8; display: none;"></div>
+            </div>
+            <!-- Direct OpenAI Fallback Configuration -->
+            <div id="openai-config-group">
+                <label class="setting-label">Direct OpenAI API Key (Optional Fallback)</label>
+                <input type="password" id="cfg-openai-key" class="setting-input" placeholder="sk-..." />
+            </div>
+            <div>
+                <label class="setting-label">Designated Senders (Auto-Draft)</label>
+                <textarea id="cfg-designated" class="setting-textarea" placeholder="client@example.com"></textarea>
+            </div>
+            <div>
+                <label class="setting-label">Blacklisted Senders (Delete / Trash)</label>
+                <textarea id="cfg-blacklisted" class="setting-textarea" placeholder="spam@deals.com"></textarea>
+            </div>
+            <div>
+                <label class="setting-label">Keep newly arrived emails intact for (Minutes)</label>
+                <input type="number" id="cfg-grace-period" class="setting-input" value="60" min="0" max="720" />
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="cfg-auto-delete" />
+                <label for="cfg-auto-delete" style="font-size: 11.5px; color: #cbd5e1; cursor: pointer;">Auto-trash blacklisted emails without prompt</label>
+            </div>
+            <button id="save-settings-btn" class="save-btn">Save Settings</button>
+        </div>
+    </div>
+
+    <div id="control-section">
+        <div class="chips-row">
+            <button class="chip-btn" id="chip-omniroute" data-prompt="Test omniroute connection" style="border-color: rgba(56, 189, 248, 0.5); color: #38bdf8;">🌐 Test OmniRoute</button>
+            <button class="chip-btn" id="chip-sort-sender" data-prompt="Sort all mails in different folders named according to senders">📁 Sort All by Senders</button>
+            <button class="chip-btn" id="chip-block-sender" data-prompt="Block this sender">🚫 Block Sender</button>
+            <button class="chip-btn" id="chip-who-blocked" data-prompt="Who is blocked">📋 Who is Blocked</button>
+            <button class="chip-btn" id="chip-draft" data-prompt="Make a draft reply to the latest email">✉️ Draft Reply</button>
+            <button class="chip-btn" id="chip-attachment" data-prompt="Summarize mail with attachment">📎 Summarize Attachment</button>
+            <button class="chip-btn" id="chip-synopsis" data-prompt="Summarize all emails in this folder">📑 Summarize Folder</button>
+            <button class="chip-btn" data-prompt="Scan my unread emails and triage them">🚀 Scan Inbox</button>
+            <button class="chip-btn" data-prompt="How many unread emails do I have?">📊 Unread Count</button>
+            <button class="chip-btn" data-prompt="Delete all previous mails from blocked senders">🧹 Clean Spam</button>
+            <button class="chip-btn" data-prompt="What can you do?">❓ Help</button>
+        </div>
+
+        <form id="input-form">
+            <input type="text" id="user-input" placeholder="Ask or command (e.g. 'Sort all mails in different folders named according to senders', 'Scan now')..." autocomplete="off" />
+            <button type="submit" id="send-btn">Send</button>
+        </form>
+    </div>
+
+    <!-- Native In-Extension Scripts -->
+    <script src="libs/three.min.js"></script>
+    <script src="libs/OrbitControls.js"></script>
+    <script src="gmail_engine.js"></script>
+    <script src="avatar.js"></script>
+</body>
+</html>

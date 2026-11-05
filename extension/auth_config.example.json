@@ -1,0 +1,26 @@
+{
+  "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+  "client_secret": "YOUR_GOOGLE_CLIENT_SECRET",
+  "refresh_token": "YOUR_REFRESH_TOKEN",
+  "ai_provider": "omniroute",
+  "use_omniroute": true,
+  "omniroute_base_url": "http://localhost:20128/v1",
+  "omniroute_api_key": "omniroute",
+  "omniroute_model": "auto",
+  "openai_api_key": "",
+  "designated_senders": [
+    "client@example.com",
+    "boss@company.com"
+  ],
+  "delete_senders": [],
+  "auto_delete": false,
+  "max_scan": 10,
+  "grace_period_minutes": 60,
+  "avatar_character": "dog",
+  "agent_enabled": true,
+  "sender_folder_prefix": "",
+  "sender_folder_mappings": {
+    "indusindbank": "indusind",
+    "indusind": "indusind"
+  }
+}

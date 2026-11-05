@@ -1,0 +1,436 @@
+/* Gmail 3D Avatar Assistant Injected Widget */
+#gmail-avatar-widget-root {
+    position: fixed;
+    bottom: 20px;
+    right: 24px;
+    z-index: 2147483647;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    user-select: none;
+}
+
+/* Floating Launcher Button */
+#gmail-avatar-launcher {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    padding: 10px 18px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 13.5px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+#gmail-avatar-launcher:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(56, 189, 248, 0.35);
+    border-color: #38bdf8;
+}
+
+.avatar-online-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 10px #22c55e;
+    animation: gmail-avatar-pulse 2s infinite;
+}
+
+@keyframes gmail-avatar-pulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.25); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+/* Main Floating Avatar Window */
+#gmail-avatar-window {
+    display: flex;
+    flex-direction: column;
+    width: 380px;
+    height: 580px;
+    background: #0f172a;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 18px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+#gmail-avatar-window.hidden {
+    display: none;
+}
+
+/* Window Header */
+#gmail-avatar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: rgba(15, 23, 42, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: move;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #f8fafc;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+}
+
+.header-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+/* Avatar Iframe */
+#gmail-avatar-frame {
+    width: 100%;
+    flex: 1;
+    border: none;
+    background: transparent;
+}
+
+/* ==========================================================
+   AI Email Synopsis Floating Popover on Mouseover
+   ========================================================== */
+#gmail-synopsis-popover {
+    position: fixed;
+    z-index: 2147483646;
+    width: 380px;
+    max-width: 90vw;
+    background: rgba(15, 23, 42, 0.97);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    border-radius: 14px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 25px rgba(56, 189, 248, 0.2);
+    color: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 14px 16px;
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    box-sizing: border-box;
+}
+
+#gmail-synopsis-popover.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+/* Header with Badges */
+.synopsis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.synopsis-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.syn-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2.5px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.syn-badge-cat {
+    background: rgba(56, 189, 248, 0.16);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.syn-badge-cat.Work { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); }
+.syn-badge-cat.Finance { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
+.syn-badge-cat.Promotions { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); }
+.syn-badge-cat.Support { background: rgba(236, 72, 153, 0.2); color: #f472b6; border-color: rgba(236, 72, 153, 0.4); }
+.syn-badge-cat.Personal { background: rgba(168, 85, 247, 0.2); color: #c084fc; border-color: rgba(168, 85, 247, 0.4); }
+
+.syn-badge-urgency {
+    font-size: 10px;
+}
+.syn-badge-urgency.Urgent {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.45);
+}
+.syn-badge-urgency.Normal {
+    background: rgba(56, 189, 248, 0.15);
+    color: #93c5fd;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.syn-badge-urgency.Low {
+    background: rgba(148, 163, 184, 0.15);
+    color: #cbd5e1;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.synopsis-date {
+    font-size: 11px;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+/* Email Subject & Sender */
+.synopsis-subject {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.35;
+    margin-bottom: 3px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.synopsis-sender {
+    font-size: 11.5px;
+    color: #94a3b8;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* TLDR Box */
+.synopsis-tldr-box {
+    background: rgba(30, 41, 59, 0.85);
+    border-left: 3px solid #38bdf8;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: #e2e8f0;
+    margin-bottom: 8px;
+}
+
+/* Key Points Bullets */
+.synopsis-points-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.synopsis-points-list {
+    margin: 0 0 10px 0;
+    padding-left: 18px;
+    font-size: 12px;
+    color: #cbd5e1;
+    line-height: 1.45;
+}
+
+.synopsis-points-list li {
+    margin-bottom: 3px;
+}
+
+/* Action Item Box */
+.synopsis-action-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #fde68a;
+    margin-bottom: 10px;
+}
+
+.synopsis-action-box.no-action {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #86efac;
+}
+
+/* Footer & Actions */
+.synopsis-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 10.5px;
+    color: #64748b;
+}
+
+.synopsis-copy-btn {
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #38bdf8;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.synopsis-copy-btn:hover {
+    background: rgba(56, 189, 248, 0.25);
+    color: #ffffff;
+}
+
+/* Loading Shimmer Animation */
+.synopsis-loading {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 0;
+}
+
+.synopsis-shimmer-line {
+    height: 12px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.06) 75%);
+    background-size: 200% 100%;
+    animation: shimmer-load 1.4s infinite;
+}
+
+@keyframes shimmer-load {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Gmail Top Toolbar Injected Button */
+.gmail-synopsis-toolbar-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%) !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(56, 189, 248, 0.45) !important;
+    border-radius: 18px !important;
+    padding: 5px 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.2s ease !important;
+    margin-left: 12px !important;
+    height: 32px !important;
+    line-height: 1 !important;
+    vertical-align: middle !important;
+    z-index: 100 !important;
+}
+
+.gmail-synopsis-toolbar-btn:hover {
+    background: linear-gradient(135deg, #1e293b 0%, #2e1065 100%) !important;
+    border-color: #38bdf8 !important;
+    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+.gmail-synopsis-toolbar-btn:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+#gmail-toggle-avatar-btn {
+    border-color: rgba(34, 197, 94, 0.45) !important;
+}
+
+#gmail-toggle-avatar-btn:hover {
+    border-color: #22c55e !important;
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35) !important;
+}
+
+/* Row indicator badge */
+.gmail-synopsis-row-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    color: #38bdf8;
+    font-size: 9.5px;
+    font-weight: bold;
+    cursor: help;
+    margin-right: 4px;
+    vertical-align: middle;
+    transition: all 0.2s ease;
+}
+
+.gmail-synopsis-row-badge:hover {
+    transform: scale(1.18);
+    background: rgba(56, 189, 248, 0.3);
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+}
+
+/* Attached Documents in Popover */
+.synopsis-attachments-box {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 6px;
+    padding: 7px 10px;
+    margin-bottom: 8px;
+}
+
+.synopsis-att-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #38bdf8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.synopsis-att-item {
+    font-size: 11.5px;
+    color: #e2e8f0;
+    margin-top: 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.synopsis-att-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+
