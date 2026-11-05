@@ -899,7 +899,12 @@
             updateStatus();
         } catch (err) {
             sendBtn.disabled = false;
-            setAvatarRemark(`I encountered an issue: ${err.message}`, true);
+            const msg = (err && err.message) ? err.message : String(err);
+            if (msg.includes('Extension context invalidated')) {
+                setAvatarRemark('🔄 The extension was reloaded or updated. Please refresh this Gmail tab (F5) to reconnect!', true);
+            } else {
+                setAvatarRemark(`I encountered an issue: ${msg}`, true);
+            }
         }
     }
 

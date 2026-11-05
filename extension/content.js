@@ -1074,7 +1074,12 @@
                 notifyAvatar(res.remark || "Done!");
             }
         } catch (err) {
-            notifyAvatar(`I encountered an issue: ${err.message}`);
+            const msg = (err && err.message) ? err.message : String(err);
+            if (msg.includes('Extension context invalidated')) {
+                notifyAvatar('🔄 The extension was reloaded or updated. Please refresh this Gmail tab (F5) to reconnect!');
+            } else {
+                notifyAvatar(`I encountered an issue: ${msg}`);
+            }
         }
     }
 
@@ -1091,6 +1096,9 @@
     // 8. Lifecycle & Continuous Inspection
     // ==========================================================
     function runScanCycles() {
+        if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+            return;
+        }
         injectWidget();
         injectFolderToolbarButton();
         setupEmailRowHoverListeners();

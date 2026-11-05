@@ -1491,17 +1491,49 @@ Always respond in strictly valid JSON with this exact schema (no markdown, no ba
         if (isSortSender) {
             const isAll = pLower.includes("all") || pLower.includes("everything") || pLower.includes("entire");
             let targetQuery = "-in:trash -in:spam";
-            if (!pLower.includes("sender wise") && !pLower.includes("and similar") && !pLower.includes("by sender")) {
-                const targetMatch = pLower.match(/(?:from|for)\s+([a-zA-Z0-9_\-\.]+)(?:\s+shall\s+be\s+put|\s+into|\s+in|\s+to)\s+(?:a\s+)?folder/);
-                if (targetMatch && !["each", "all", "every", "the", "a", "sender"].includes(targetMatch[1])) {
-                    targetQuery = `from:${targetMatch[1]} -in:trash -in:spam`;
+            let targetSender = null;
+            let needsTarget = false;
+
+            if (!pLower.includes("sender wise") && !pLower.includes("and similar") && !pLower.includes("by sender") && !pLower.includes("each sender") && !pLower.includes("all senders")) {
+                const qMatch = userPrompt.match(/(?:from|for)\s+["']([^"']+)["']/i);
+                if (qMatch) {
+                    targetSender = qMatch[1].trim();
+                } else {
+                    const emMatch = userPrompt.match(/[\w\.-]+@[\w\.-]+\.\w+/);
+                    if (emMatch) {
+                        targetSender = emMatch[0].toLowerCase();
+                    } else {
+                        const wMatch = pLower.match(/(?:from|for)\s+([a-zA-Z0-9_\-\.]+)/);
+                        const stopWords = ["each", "all", "every", "the", "a", "sender", "senders", "this", "particular", "specific", "one", "any", "my", "me", "our"];
+                        if (wMatch && !stopWords.includes(wMatch[1])) {
+                            targetSender = wMatch[1];
+                        }
+                    }
+                }
+
+                if (!targetSender && (pLower.includes("particular sender") || pLower.includes("specific sender") || pLower.includes("a sender"))) {
+                    needsTarget = true;
+                }
+
+                if (targetSender) {
+                    targetQuery = `from:${targetSender} -in:trash -in:spam`;
                 }
             }
+
+            if (!targetSender && needsTarget) {
+                return {
+                    remark: "📁 I can certainly put all mails from a particular sender in a folder named after that sender!\n\nWhich sender would you like me to sort? You can specify:\n• An email: 'put all mails from client@example.com in a folder'\n• A brand/bank: 'put all mails from IndusInd in a folder'\n• A name: 'put all mails from \"John Doe\" in a folder'",
+                    sender_groups: [],
+                    details: []
+                };
+            }
+
             return await sortEmailsBySender({
                 createLabels: true,
                 fetchAll: true,
                 maxResults: isAll ? 200 : 50,
-                folderQuery: targetQuery
+                folderQuery: targetQuery,
+                targetSender: targetSender
             });
         }
 
